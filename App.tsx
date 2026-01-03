@@ -111,6 +111,10 @@ function App() {
     } else if (currentSlide < slides.length - 1) {
       setCurrentSlide(prev => prev + 1);
       setCurrentPhase(0);
+    } else if (currentSlide === slides.length - 1 && currentPhase === activeSlide.phases.length - 1) {
+      // At the very last slide and phase - on next click, go to beginning
+      setCurrentSlide(0);
+      setCurrentPhase(0);
     }
   }, [currentPhase, currentSlide, activeSlide.phases.length, slides.length]);
 
@@ -592,9 +596,9 @@ function App() {
         <button 
           onClick={() => setShowPresentationSelector(!showPresentationSelector)}
           title="Select Presentation"
-          className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-700 border ${isDarkMode ? 'bg-cyan-600/10 border-cyan-500/30 hover:bg-cyan-600 text-cyan-400 hover:text-white' : 'bg-cyan-400/10 border-cyan-400/30 hover:bg-cyan-400 text-cyan-600 hover:text-white'}`}
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-700 border ${isDarkMode ? 'bg-cyan-600/10 border-cyan-500/30 hover:bg-cyan-600' : 'bg-cyan-400/10 border-cyan-400/30 hover:bg-cyan-400'}`}
         >
-          <IconRenderer name="BookOpen" className="w-6 h-6" />
+          <IconRenderer name="BookOpen" className={`w-6 h-6 ${isDarkMode ? 'text-cyan-400 hover:text-white' : 'text-cyan-600 hover:text-white'}`} />
         </button>
         
         {showPresentationSelector && (
@@ -627,9 +631,9 @@ function App() {
         <button 
           onClick={() => setIsDarkMode(!isDarkMode)}
           title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-700 border ${isDarkMode ? 'bg-yellow-600/10 border-yellow-500/30 hover:bg-yellow-600 text-yellow-400 hover:text-white' : 'bg-slate-400/10 border-slate-500/30 hover:bg-slate-400 text-slate-600 hover:text-white'}`}
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-700 border ${isDarkMode ? 'bg-yellow-600/10 border-yellow-500/30 hover:bg-yellow-600' : 'bg-slate-400/10 border-slate-500/30 hover:bg-slate-400'}`}
         >
-          <IconRenderer name={isDarkMode ? "Sun" : "Moon"} className="w-6 h-6" />
+          <IconRenderer name={isDarkMode ? "Sun" : "Moon"} className={`w-6 h-6 ${isDarkMode ? 'text-yellow-400 hover:text-white' : 'text-slate-600 hover:text-white'}`} />
         </button>
         <button 
           onClick={(e) => { e.stopPropagation(); handleEditorToggle(); }}
