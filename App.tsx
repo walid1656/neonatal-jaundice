@@ -37,6 +37,7 @@ function App() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isProcessingImage, setIsProcessingImage] = useState<string | null>(null);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordModalMode, setPasswordModalMode] = useState<'edit' | 'create'>('edit');
   const [showPresentationsModal, setShowPresentationsModal] = useState(false);
   const [showNewPresentationForm, setShowNewPresentationForm] = useState(false);
   const [newPresentationName, setNewPresentationName] = useState('');
@@ -122,7 +123,11 @@ function App() {
 
   const handlePasswordSubmit = () => {
     if (passwordInput === EDITOR_PASSWORD) {
-      setIsEditMode(true);
+      if (passwordModalMode === 'edit') {
+        setIsEditMode(true);
+      } else if (passwordModalMode === 'create') {
+        handleCreatePresentation();
+      }
       setShowPasswordModal(false);
       setPasswordInput('');
       setPasswordError(false);
@@ -136,10 +141,19 @@ function App() {
     if (isEditMode) {
       setIsEditMode(false);
     } else {
+      setPasswordModalMode('edit');
       setShowPasswordModal(true);
       setPasswordInput('');
       setPasswordError(false);
     }
+  };
+
+  const handleCreatePresentationClick = () => {
+    if (!newPresentationName.trim()) return;
+    setPasswordModalMode('create');
+    setShowPasswordModal(true);
+    setPasswordInput('');
+    setPasswordError(false);
   };
 
   const handleCreatePresentation = () => {
@@ -157,6 +171,7 @@ function App() {
     setCurrentPresentationId(newId);
     setNewPresentationName('');
     setShowNewPresentationForm(false);
+    setShowPresentationsModal(false);
   };
 
   const handleDeletePresentation = (id: string) => {
@@ -642,7 +657,9 @@ function App() {
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[150] flex items-center justify-center p-4">
           <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-black border border-blue-500/30 rounded-2xl p-8 max-w-md w-full shadow-2xl">
-            <h2 className="text-xl font-black uppercase tracking-[0.2em] text-white mb-6">Enter Editor Password</h2>
+            <h2 className="text-xl font-black uppercase tracking-[0.2em] text-white mb-6">
+              {passwordModalMode === 'edit' ? 'Enter Editor Password' : 'Enter Password to Create'}
+            </h2>
             
             <div className="space-y-4">
               <input
@@ -758,7 +775,7 @@ function App() {
                   onChange={(e) => setNewPresentationName(e.target.value)}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter') {
-                      handleCreatePresentation();
+                      handleCreatePresentationClick();
                     }
                   }}
                   placeholder="Presentation name..."
@@ -776,7 +793,7 @@ function App() {
                     Cancel
                   </button>
                   <button
-                    onClick={handleCreatePresentation}
+                    onClick={handleCreatePresentationClick}
                     disabled={!newPresentationName.trim()}
                     className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-2 px-4 rounded-xl transition-all"
                   >
