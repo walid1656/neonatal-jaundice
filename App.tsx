@@ -40,6 +40,7 @@ function App() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordModalMode, setPasswordModalMode] = useState<'edit' | 'create'>('edit');
   const [showPresentationsModal, setShowPresentationsModal] = useState(false);
+  const [showPresentationSelector, setShowPresentationSelector] = useState(false);
   const [showNewPresentationForm, setShowNewPresentationForm] = useState(false);
   const [newPresentationName, setNewPresentationName] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
@@ -585,6 +586,41 @@ function App() {
           </div>
         </div>
       )}
+
+      {/* Presentation Selector - Top Left */}
+      <div className="fixed top-8 left-8 z-[100]">
+        <button 
+          onClick={() => setShowPresentationSelector(!showPresentationSelector)}
+          title="Select Presentation"
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-700 border relative ${isDarkMode ? 'bg-cyan-600/10 border-cyan-500/30 hover:bg-cyan-600' : 'bg-cyan-400/10 border-cyan-400/30 hover:bg-cyan-400'}`}
+        >
+          <IconRenderer name="BookOpen" className="w-6 h-6" />
+        </button>
+        
+        {showPresentationSelector && (
+          <div className={`absolute top-16 left-0 mt-2 rounded-xl border shadow-2xl backdrop-blur-[80px] z-[101] min-w-[280px] p-3 space-y-2 animate-in slide-in-from-top duration-200 ${isDarkMode ? 'bg-slate-950/95 border-white/10' : 'bg-white/95 border-slate-200'}`}>
+            {presentations.map(presentation => (
+              <button
+                key={presentation.id}
+                onClick={() => {
+                  setCurrentPresentationId(presentation.id);
+                  setShowPresentationSelector(false);
+                }}
+                className={`w-full text-left p-3 rounded-lg transition-all text-sm font-bold ${
+                  currentPresentationId === presentation.id
+                    ? isDarkMode ? 'bg-cyan-500/20 border border-cyan-500 text-cyan-400' : 'bg-cyan-400/20 border border-cyan-400 text-cyan-600'
+                    : isDarkMode ? 'border border-transparent hover:bg-white/10 text-white' : 'border border-transparent hover:bg-slate-200 text-slate-900'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <IconRenderer name="Check" className={`w-4 h-4 ${currentPresentationId === presentation.id ? 'opacity-100' : 'opacity-0'}`} />
+                  {presentation.name}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Editor Trigger */}
       <div className="fixed top-8 right-8 z-[100] flex gap-3">
