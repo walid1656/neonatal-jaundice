@@ -21,6 +21,9 @@ function App() {
   const [passwordInput, setPasswordInput] = useState('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordError, setPasswordError] = useState('');
+  const [isPasswordVerified, setIsPasswordVerified] = useState(() => {
+    return localStorage.getItem('editor_verified') === 'true';
+  });
 
   const activeSlide = slides[currentSlide];
 
@@ -37,9 +40,13 @@ function App() {
   }, [slides]);
 
   const handleEditModeRequest = () => {
-    setShowPasswordModal(true);
-    setPasswordInput('');
-    setPasswordError('');
+    if (isPasswordVerified) {
+      setIsEditMode(true);
+    } else {
+      setShowPasswordModal(true);
+      setPasswordInput('');
+      setPasswordError('');
+    }
   };
 
   const handlePasswordSubmit = () => {
@@ -48,6 +55,8 @@ function App() {
       setShowPasswordModal(false);
       setPasswordInput('');
       setPasswordError('');
+      localStorage.setItem('editor_verified', 'true');
+      setIsPasswordVerified(true);
     } else {
       setPasswordError('كلمة المرور غير صحيحة');
       setPasswordInput('');
@@ -77,6 +86,13 @@ function App() {
       setCurrentPhase(slides[currentSlide - 1].phases.length - 1);
     }
   }, [currentPhase, currentSlide, slides]);
+
+  const handleDoubleClick = () => {
+    if (currentSlide === slides.length - 1) {
+      setCurrentSlide(0);
+      setCurrentPhase(0);
+    }
+  };
 
   const handleGlobalClick = (e: React.MouseEvent) => {
     if (isEditMode) return;
@@ -499,8 +515,8 @@ function App() {
         </div>
       )}
 
-      {/* Side Navigation Dots */}
-      <div className="absolute left-8 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-10 pointer-events-none">
+      {/* Side Navigation Dots - Right Side */}
+      <div className="absolute right-8 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-10 pointer-events-none">
         <div className="text-vertical text-[9px] font-black uppercase tracking-[1em] text-white/5 animate-pulse">Diagnostics 2025</div>
         <div className="w-px h-32 bg-gradient-to-b from-transparent via-blue-500/40 to-transparent"></div>
         <div className="flex flex-col gap-4 overflow-y-auto max-h-[40vh] no-scrollbar pointer-events-auto px-4 py-6">
@@ -514,43 +530,35 @@ function App() {
         </div>
       </div>
 
-      <main className="relative z-40 h-full w-full flex items-center justify-center pointer-events-none overflow-hidden">
+      <main className="relative z-40 h-full w-full flex items-center justify-center pointer-events-none overflow-hidden" onDoubleClick={handleDoubleClick}>
         <div key={currentSlide} className="w-full h-full panoramic-slide">
           <SlideRenderer slide={activeSlide} currentPhase={currentPhase} />
         </div>
       </main>
 
-      {/* Cinematic Control Dock */}
-      <footer className="absolute bottom-10 left-20 z-50 pointer-events-none">
-        <div className="flex items-center gap-10 bg-slate-950/40 backdrop-blur-[60px] px-8 py-4 rounded-[3rem] border border-white/10 pointer-events-auto shadow-[0_30px_60px_rgba(0,0,0,0.8)]">
-          <div className="flex flex-col">
-            <span className="text-[8px] font-black text-blue-500/60 uppercase tracking-[0.4em] mb-2 ml-1">Protocol Nav</span>
-            <div className="flex items-center gap-6">
-              <button onClick={(e) => { e.stopPropagation(); handlePrev(); }} className="p-2 hover:bg-white/10 rounded-xl transition-all group scale-110">
-                <IconRenderer name="ChevronLeft" className="w-6 h-6 group-hover:text-blue-400 transition-transform" />
-              </button>
-              <div className="text-2xl font-black atlas-title flex items-baseline gap-1.5 tabular-nums">
-                {String(currentSlide + 1).padStart(2, '0')}
-                <span className="text-white/10 mx-0.5 text-sm">/</span>
-                <span className="text-white/20 text-sm font-medium">{String(slides.length).padStart(2, '0')}</span>
-              </div>
-              <button onClick={(e) => { e.stopPropagation(); handleNext(); }} className="p-2 hover:bg-white/10 rounded-xl transition-all group scale-110">
-                <IconRenderer name="ChevronRight" className="w-6 h-6 group-hover:text-blue-400 transition-transform" />
-              </button>
-            </div>
+      {/* Compact Control Bar */}
+      <footer className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+        <div className="flex items-center gap-6 bg-slate-950/50 backdrop-blur-[60px] px-6 py-3 rounded-full border border-white/10 pointer-events-auto shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
+          <button onClick={(e) => { e.stopPropagation(); handlePrev(); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-all group">
+            <IconRenderer name="ChevronLeft" className="w-5 h-5 group-hover:text-blue-400 transition-transform" />
+          </button>
+          <div className="text-lg font-black atlas-title flex items-baseline gap-1 tabular-nums px-2">
+            {String(currentSlide + 1).padStart(2, '0')}
+            <span className="text-white/20 text-xs">/</span>
+            <span className="text-white/40 text-xs font-medium">{String(slides.length).padStart(2, '0')}</span>
           </div>
-          <div className="w-px h-10 bg-white/10"></div>
-          <div className="flex flex-col">
-            <span className="text-[8px] font-black text-blue-500/60 uppercase tracking-[0.4em] mb-2 ml-1">Active Step</span>
-            <div className="flex gap-2.5">
-              {activeSlide.phases.map((_, i) => (
-                <div 
-                    key={i} 
-                    onClick={(e) => { e.stopPropagation(); setCurrentPhase(i); }}
-                    className={`h-2 rounded-full cursor-pointer transition-all duration-1000 ${i <= currentPhase ? 'w-10 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.6)]' : 'w-2 bg-white/10 hover:bg-white/30'}`}
-                ></div>
-              ))}
-            </div>
+          <button onClick={(e) => { e.stopPropagation(); handleNext(); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-all group">
+            <IconRenderer name="ChevronRight" className="w-5 h-5 group-hover:text-blue-400 transition-transform" />
+          </button>
+          <div className="w-px h-6 bg-white/10 mx-2"></div>
+          <div className="flex gap-2">
+            {activeSlide.phases.map((_, i) => (
+              <div 
+                  key={i} 
+                  onClick={(e) => { e.stopPropagation(); setCurrentPhase(i); }}
+                  className={`h-1.5 rounded-full cursor-pointer transition-all duration-1000 ${i <= currentPhase ? 'w-6 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]' : 'w-1.5 bg-white/10 hover:bg-white/30'}`}
+              ></div>
+            ))}
           </div>
         </div>
       </footer>
