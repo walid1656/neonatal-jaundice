@@ -6,6 +6,8 @@ import { IconRenderer, Icons } from './components/Icons';
 import { SlideContent, SlideType, AccentColor, CardSize, BackgroundStyle } from './types';
 import { GoogleGenAI } from "@google/genai";
 
+const EDITOR_PASSWORD = 'Sohila@@Admin@@';
+
 function App() {
   const [slides, setSlides] = useState<SlideContent[]>(() => {
     const saved = localStorage.getItem('atlas_slides_v10');
@@ -16,6 +18,9 @@ function App() {
   const [currentPhase, setCurrentPhase] = useState(0);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isProcessingImage, setIsProcessingImage] = useState<string | null>(null);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
   const activeSlide = slides[currentSlide];
 
@@ -30,6 +35,30 @@ function App() {
   useEffect(() => {
     localStorage.setItem('atlas_slides_v10', JSON.stringify(slides));
   }, [slides]);
+
+  const handleEditModeRequest = () => {
+    setShowPasswordModal(true);
+    setPasswordInput('');
+    setPasswordError('');
+  };
+
+  const handlePasswordSubmit = () => {
+    if (passwordInput === EDITOR_PASSWORD) {
+      setIsEditMode(true);
+      setShowPasswordModal(false);
+      setPasswordInput('');
+      setPasswordError('');
+    } else {
+      setPasswordError('كلمة المرور غير صحيحة');
+      setPasswordInput('');
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handlePasswordSubmit();
+    }
+  };
 
   const handleNext = useCallback(() => {
     if (currentPhase < activeSlide.phases.length - 1) {
@@ -420,12 +449,55 @@ function App() {
       {/* Editor Trigger */}
       <div className="fixed top-8 right-8 z-[100]">
         <button 
-          onClick={(e) => { e.stopPropagation(); setIsEditMode(!isEditMode); }}
+          onClick={(e) => { e.stopPropagation(); isEditMode ? setIsEditMode(false) : handleEditModeRequest(); }}
           className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-700 border ${isEditMode ? 'bg-red-600 border-red-500 rotate-90' : 'bg-blue-600/10 border-blue-500/30 backdrop-blur-[40px] hover:bg-blue-600 hover:scale-110'}`}
         >
           <IconRenderer name={isEditMode ? "X" : "Menu"} className="w-6 h-6" />
         </button>
       </div>
+
+      {/* Password Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center" onClick={() => setShowPasswordModal(false)}>
+          <div className="bg-slate-950 border border-blue-500/30 rounded-[3rem] p-10 w-96 shadow-2xl backdrop-blur-[80px]" onClick={(e) => e.stopPropagation()}>
+            <h3 className="atlas-title text-2xl font-black text-white mb-2 uppercase">Clinical Access</h3>
+            <p className="text-slate-400 text-sm mb-6">أدخل كلمة المرور للدخول إلى المحرر</p>
+            
+            <div className="space-y-4">
+              <div>
+                <input 
+                  type="password" 
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="كلمة المرور"
+                  className="w-full bg-black/50 border border-white/10 p-4 rounded-xl text-white placeholder-slate-500 focus:border-blue-500 outline-none transition-colors"
+                  autoFocus
+                />
+              </div>
+              
+              {passwordError && (
+                <div className="text-red-400 text-sm font-bold">{passwordError}</div>
+              )}
+              
+              <div className="flex gap-4 pt-4">
+                <button 
+                  onClick={() => setShowPasswordModal(false)}
+                  className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 transition-all font-bold"
+                >
+                  إلغاء
+                </button>
+                <button 
+                  onClick={handlePasswordSubmit}
+                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-bold"
+                >
+                  دخول
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Side Navigation Dots */}
       <div className="absolute left-8 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-10 pointer-events-none">
